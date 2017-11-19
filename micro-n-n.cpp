@@ -57,25 +57,23 @@ public:
 	void SetOutput(double output);
 	double GetOutput() const;
 	void FeedForward(const Layer &previousLayer);
-
+	void CalculateOutputGradients(double target);
+	void CalculateHiddenGradients(Layer &nextLayer);
+	double sumDOW(const Layer &nextLayer) const;
+	void UpdateInputWeights(Layer &prevLayer);
 private:
+	static double eta, alpha;
 	unsigned n_myIndex;
-	double n_Output;
+	double n_Output, n_gradient;
 	vector<Connections> n_outWeights;
 	static double RandomNum(void);
 	static double Transfer(double value);
 	static double TransferDerivative(double value);
 };
 
-Neuron::Neuron(unsigned neuronOutputsNum, unsigned myIndex)
-{
-	for(unsigned c; c < neuronOutputsNum; ++c)
-	{
-		n_outWeights.push_back(Connection());
-		n_outWeights.back().weight = Neuron::RandomNum();
-	}
-	n_myIndex = myIndex
-}
+double Neuron::eta = 0.16;
+double Neuron::alpha; = 0.52;
+
 static double Neuron::RandomNum(void)
 {
 	return rand() / double(RAND_MAX);
@@ -88,6 +86,16 @@ static double Transfer(double value)
 static double TransferDerivative(double value)
 {
 	return 1.0 - value * value;
+}
+Neuron::Neuron(unsigned neuronOutputsNum, unsigned myIndex)
+{
+	for(unsigned c; c < neuronOutputsNum; ++c)
+	{
+		n_outWeights.push_back(Connection());
+		n_outWeights.back().weight = Neuron::RandomNum();
+		n_outWeights.back().deltaWeight = 0;
+	}
+	n_myIndex = myIndex
 }
 
 void Neuron::SetOutput(double output)
@@ -111,6 +119,45 @@ void Neuron::FeedForward(const Layer &previousLayer)
 	}
 	n_Output = Neuron::Transfer(sum);
 }
+void Neuron::CalculateOutputGradients(double target)
+{
+	double dv = taget - n_Output;
+	n_gradient = dv * Neuron::TransferDerivative(n_Output);
+}
+void Neuron::CalculateHiddenGradients(Layer &nextLayer)
+{
+	double dow = sumDOW(nextLayer);
+	n_gradient = dow * Neuron::TransferDerivative(n_Output);
+}
+
+double Neuron::sumDOW(const Layer &nextLayer) const
+{
+	double sum = 0.0;
+	// sum contribution of the error at the nodes we feed
+	for(unsigned n = 0; n < nextLayer.size() - 1; ++n)
+	{
+		sum += n_outWeights[n].weight * nextLayer[n].n_gradient;
+	}
+	return sum;
+}
+
+void Neuron::UpdateInputWeights(Layer &prevLayer)
+{
+	// weights that are going to be updated are in Connection container in the neuron in the preciding layer
+	for(unsigned n = 0; n < prevLayer.size(); ++n)
+	{
+		Neuron &neuron = prevLayer[n];
+		double oldDeltaWeight = neuron.n_outWeights[n_myIndex].deltaWeight;
+
+		// eta is overall learning rate
+		// alpha is momentum of the learning
+		double newDeltaWeight = eta * neuron.GetOutput()  * n_gradient + alpha * oldDeltaWeight;
+
+		neuron.n_outWeights[n_myIndex].deltaWeight = newDeltaWeight;
+		neuron.n_outWeights[n_myIndex].weight += newDeltaWeight;
+
+	}
+}
 
 /*****NET******/
 
@@ -125,6 +172,7 @@ public:
 
 private:
 	vector<Layer> n_layers; // this is n_layer[number of layer][number of neuron] contains all layers that contains neurons
+	double n_error, n_recentAverageError, n_recentAverageErrorSmoothingFactor;
 };
 
 Net::Net(const vector<unsigned> &topology)
@@ -144,6 +192,8 @@ Net::Net(const vector<unsigned> &topology)
 			n_layers.back().push_back(Neuron(outputsNum, neuronNum));
 			cout << "Made a new Neuron" << endl;
 		}
+		// force bieas nodes output value to 1.0
+		n_layers.back().back().SetOutput(1.0);
 	}
 }
 
@@ -158,29 +208,87 @@ void Net::FeedForward(const vector<double> &inputs)
 	assert(inputs.size() == n_layers[0].size() - 1);
 
 	//asssign the input values in to the input neurons
-	for(unsigned iter = 0; iter < inputs.size(); ++inter)
+	for(unsigned iter = 0; iter < inputs.size(); ++iter)
 	{
-		n_layers[0][iter].SetOutputValue(inputs[i]);
+		n_layers[0][iter].SetOutput(inputs[iter]);
 	}
 
 	// then do the forward propagation of input by looping through each neuron and than call FeedForward fonction of neuron that will than based on all inputs from neurons of layerNumber - 1 calculate weights and feed forward neurons in the next layers
 	for(unsigned layerNumber = 1; layerNumber < n_layers.size(); ++layerNumber)
 	{
-		Layer &previousLayer = n_layers.[layerNumber - 1];
-		for(unsigned neuronInLayerNum = 0; neuronInLayerNum < n_layers[layerNumber].size(); -1; ++neuronInLayerNum)
+		Layer &previousLayer = n_layers[layerNumber - 1];
+		for(unsigned neuronInLayerNum = 0; neuronInLayerNum < n_layers[layerNumber].size() -1; ++neuronInLayerNum)
 		{
-			n_layers[layerNumber][neuronInLayerNum].FeedForward();
+			n_layers[layerNumber][neuronInLayerNum].FeedForward(previousLayer);
 		}
 	}
 }
 
 void Net::BackPropagation(const vector<double> &targets)
 {
+ /*
+ * There is where network learns, it needs to do some calculations:
+ * a - calculate overall net error using root means squere error
+ * a.a - implement a recent avrage measurment
+ * b - calculate output leyer gradiend
+ * c - calculate hidden layer gradient
+ * d - for all layers from outputs to first hidden layer update connections weights
+ */
+
+	// a
+	Layer &outputLayer = n_layers.back();
+	n_error = 0.0;
+
+	unsigned ne; // neuron index for looping through layer neurons
+	unsigned layerNumber; // layer index for looping through net layers
+	for(ne = 0; ne < outputLayer.size() - 1; ++ne)
+	{
+		double dt = targets[ne] - outputLayer[ne].GetOutput();
+		n_error += dt * dt;
+	}
+	n_error /= outputLayer.size() - 1;
+	n_error = sqrt(n_error);
+
+	// a.a
+	n_recentAverageError = (n_recentAverageError * n_recentAverageErrorSmoothingFactor + n_error) / (n_recentAverageErrorSmoothingFactor + 1.0);
+
+	// b
+	for(ne = 0; ne < outputLayer.size() - 1; ++ne)
+	{
+		outputLayer[ne].CalculateOutputGradients(targets[ne]);
+	}
+
+	// c
+	for(layerNumber = n_layers.size() - 2; layerNumber > 0; --layerNumber)
+	{
+		Layer &hiddenLayer = n_layers[layerNumber];
+		Layer &nextLayer = n_layers[layerNumber + 1];
+		for(ne = 0; ne < hiddenLayer.size(); ++ne)
+		{
+			hiddenLayer[ne].CalculateHiddenGradients(nextLayer);
+		}
+	}
+
+	// d
+	for(layerNumber = n_layers.size() - 1; layerNumber > 0; --layerNumber)
+	{
+		Layer &layer = n_layers[layerNumber];
+		Layer &prevLayer = n_layers[layerNumber - 1];
+
+		for(ne = 0; ne < layer.size(); ++ne)
+		{
+			layer[ne].UpdateInputWeights(prevLayer);
+		}
+	}
 
 }
 void Net::GetResults(vector<double> &results) const
 {
-
+	results.clear();
+	for(unsigned neurOut = 0; neurOut < n_layers.back().size(); ++neurOut)
+	{
+		results.push_back(n_layers.back()[neurOut].GetOutput());
+	}
 }
 
 /*****test******/
@@ -188,9 +296,9 @@ void Net::GetResults(vector<double> &results) const
 int main()
 {
 	vector<unsigned> topology;
-	topology.push_back(3);
-	topology.push_back(2);
-	topology.push_back(1);
+	topology.push_back(100);
+	topology.push_back(200);
+	topology.push_back(100);
 	Net microNN(topology);
 
 	vector<double> inputs;
