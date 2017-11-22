@@ -115,9 +115,12 @@ void Neuron::FeedForward(const Layer &previousLayer)
 
 	// include bias node from previos layer
 
-	for(unsigned neuronN = 0; neuronN < previousLayer.size(); ++neuronN)
+	for(unsigned neuronN = 0; neuronN < previousLayer.size() - 1; ++neuronN)
 	{
-		sum += 	previousLayer[neuronN].GetOutput() * previousLayer[neuronN].n_outWeights[n_myIndex].weight;
+		sum += previousLayer[neuronN].GetOutput() * previousLayer[neuronN].n_outWeights[n_myIndex].weight;
+		cout << "neuron number: " << neuronN << endl;
+		cout << "layer size: " << previousLayer.size() << endl;
+		cout << "sum: " << sum << endl;
 	}
 	n_Output = Neuron::Transfer(sum);
 }
@@ -205,10 +208,11 @@ Net::~Net(){}
 
 void Net::FeedForward(const vector<double> &inputs)
 {
-	//check if number of inputs is the same as number of neurons in firs layer
+	//check if number of inputs is the same as number of neurons in first layer
 	assert(inputs.size() == n_layers[0].size() - 1);
 
-	//asssign the input values in to the input neurons
+	//asssign the input values in to the input
+
 	for(unsigned iter = 0; iter < inputs.size(); ++iter)
 	{
 		n_layers[0][iter].SetOutput(inputs[iter]);
@@ -218,8 +222,9 @@ void Net::FeedForward(const vector<double> &inputs)
 	for(unsigned layerNumber = 1; layerNumber < n_layers.size(); ++layerNumber)
 	{
 		Layer &previousLayer = n_layers[layerNumber - 1];
-		for(unsigned neuronInLayerNum = 0; neuronInLayerNum < n_layers[layerNumber].size() -1; ++neuronInLayerNum)
+		for(unsigned neuronInLayerNum = 0; neuronInLayerNum < n_layers[layerNumber].size() - 1; ++neuronInLayerNum)
 		{
+			cout << "neuron in layer num: " << neuronInLayerNum << endl;
 			n_layers[layerNumber][neuronInLayerNum].FeedForward(previousLayer);
 		}
 	}

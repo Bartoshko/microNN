@@ -27,24 +27,88 @@ SOFT
 
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 #include "./micronn.h"
 /*****test******/
+
+using namespace std;
 
 int main()
 {
 	vector<unsigned> topology;
-	topology.push_back(100);
-	topology.push_back(200);
-	topology.push_back(100);
+	vector<double> inputs;
+	vector<double> targets;
+	vector<double> results;
+	unsigned hiddenLayersQuantity = 2;
+	unsigned neuronsPerLayer = 10;
+
+
+	/* Inputs */
+	topology.push_back(2);
+	/* Creating the N N */
+	while(hiddenLayersQuantity > 0)
+	{
+		topology.push_back(neuronsPerLayer);
+		--hiddenLayersQuantity;
+	}
+	/* Outputs */
+	topology.push_back(1);
 	Net microNN(topology);
 
-	vector<double> inputs;
-	microNN.FeedForward(inputs);
+	/*Train network and get results*/
+	unsigned sesions = 1;
+	double input_A, input_B;
+	while(sesions > 0)
+	{
+		// clear inputs and targets before each feed and lesson
+		inputs.clear();
+		targets.clear();
 
-	vector<double> targets;
-	microNN.BackPropagation(targets);
 
-	vector<double> results;
-	microNN.GetResults(results);
+		input_A = Neuron::RandomNum();
+		input_B = Neuron::RandomNum();
+		if(input_A > .5)
+		{
+			input_A = 1.0;
+		}
+		else
+		{
+			input_A = 0.0;
+		}
+
+		if(input_B > .5)
+		{
+			input_B = 1.0;
+		}
+		else
+		{
+			input_B = 0.0;
+		}
+		inputs.push_back(input_A);
+		inputs.push_back(input_B);
+		microNN.FeedForward(inputs);
+		microNN.GetResults(results);
+
+		cout << "result is: " << results[0] << endl;
+		double expectedValue;
+		if((input_A == 1.0 && input_B == 1.0) || (input_A == 0.0 && input_B == 0.0))
+		{
+			expectedValue  = 0.0;
+		}
+		else
+		{
+			expectedValue  = 1.0;
+		}
+		cout << "A: " << input_A << " B: " << input_B << endl;
+		cout << "expected value is: " << expectedValue << endl;
+		targets.push_back(expectedValue);
+
+		// microNN.BackPropagation(targets);
+
+		sleep(1); // sleep for one second;
+		--sesions;
+	}
+
+
 }
 
