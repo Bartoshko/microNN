@@ -88,11 +88,11 @@ double Neuron::alpha = 0.52;
 
 Neuron::Neuron(unsigned neuronOutputsNum, unsigned myIndex)
 {
-	for(unsigned c; c < neuronOutputsNum; ++c)
+	for(unsigned c = 0; c < neuronOutputsNum; ++c)
 	{
 		n_outWeights.push_back(Connection());
 		n_outWeights.back().weight = Neuron::RandomNum();
-		n_outWeights.back().deltaWeight = 0;
+		n_outWeights.back().deltaWeight = 0.0;
 	}
 	n_myIndex = myIndex;
 }
@@ -110,17 +110,14 @@ double Neuron::GetOutput() const
 
 void Neuron::FeedForward(const Layer &previousLayer)
 {
+	// sum outpots from previous layer in this case are inputs for neuron
 	double sum = 0.0;
-	// sum outpots from previous layer tah in this case are inputs for neuron
 
 	// include bias node from previos layer
 
-	for(unsigned neuronN = 0; neuronN < previousLayer.size() - 1; ++neuronN)
+	for(unsigned neuronN = 0; neuronN < previousLayer.size(); ++neuronN)
 	{
 		sum += previousLayer[neuronN].GetOutput() * previousLayer[neuronN].n_outWeights[n_myIndex].weight;
-		cout << "neuron number: " << neuronN << endl;
-		cout << "layer size: " << previousLayer.size() << endl;
-		cout << "sum: " << sum << endl;
 	}
 	n_Output = Neuron::Transfer(sum);
 }
@@ -150,18 +147,21 @@ double Neuron::SumDOW(const Layer &nextLayer) const
 
 void Neuron::UpdateInputWeights(Layer &prevLayer)
 {
-	// weights that are going to be updated are in Connection container in the neuron in the preciding layer
+	// weights that are going to be updated are in Connection container in the neuron in the  previous layer
 	for(unsigned n = 0; n < prevLayer.size(); ++n)
 	{
 		Neuron &neuron = prevLayer[n];
-		double oldDeltaWeight = neuron.n_outWeights[n_myIndex].deltaWeight;
+
+		cout << neuron.n_outWeights[n_myIndex].deltaWeight;
+
+		// double oldDeltaWeight = neuron.n_outWeights[n_myIndex].deltaWeight;
 
 		// eta is overall learning rate
 		// alpha is momentum of the learning
-		double newDeltaWeight = eta * neuron.GetOutput()  * n_gradient + alpha * oldDeltaWeight;
+		// double newDeltaWeight = eta * neuron.GetOutput()  * n_gradient + alpha * oldDeltaWeight;
 
-		neuron.n_outWeights[n_myIndex].deltaWeight = newDeltaWeight;
-		neuron.n_outWeights[n_myIndex].weight += newDeltaWeight;
+		// neuron.n_outWeights[n_myIndex].deltaWeight = newDeltaWeight;
+		// neuron.n_outWeights[n_myIndex].weight += newDeltaWeight;
 
 	}
 }
@@ -192,15 +192,23 @@ Net::Net(const vector<unsigned> &topology)
 		// calculate number of outputs (connections) for each neuron based on information of neurons quantity in next layer, for output layer there will be no connections set
 		unsigned outputsNum = layerN == topology.size() - 1 ? 0 : topology[layerN + 1];
 
-		// now each Layer needs to be filled with i_th neurons and add bias neuron to Layer
-		for(unsigned neuronNum = 0; neuronNum <= topology[layerN]; ++neuronNum)
+		// now each Layer needs to be filled with i_th neurons and add bias neuron to Layer besides output layer that will not have bias neuron
+		unsigned neuronsPerLayer = topology[layerN];
+		if(layerN == numLayers - 1)
+		{
+			neuronsPerLayer = topology[layerN] - 1;
+		}
+		for(unsigned neuronNum = 0; neuronNum <= neuronsPerLayer; ++neuronNum)
 		{
 			// creates new Neuron on the end of the layer vector
 			n_layers.back().push_back(Neuron(outputsNum, neuronNum));
-			cout << "Made a new Neuron" << endl;
+			cout << "Made a new Neuron in layer: " << layerN << " neuron number: " << neuronNum << endl;
 		}
 		// force bieas nodes output value to 1.0
-		n_layers.back().back().SetOutput(1.0);
+		if(layerN != numLayers - 1)
+		{
+			n_layers.back().back().SetOutput(1.0);
+		}
 	}
 }
 
@@ -218,14 +226,13 @@ void Net::FeedForward(const vector<double> &inputs)
 		n_layers[0][iter].SetOutput(inputs[iter]);
 	}
 
-	// then do the forward propagation of input by looping through each neuron and than call FeedForward fonction of neuron that will than based on all inputs from neurons of layerNumber - 1 calculate weights and feed forward neurons in the next layers
+	// then do the forward propagation of input by looping through each neuron and than call FeedForward function of neuron that will than based on all inputs from neurons of layerNumber - 1 calculate weights and feed forward neurons in the layerNumber
 	for(unsigned layerNumber = 1; layerNumber < n_layers.size(); ++layerNumber)
 	{
 		Layer &previousLayer = n_layers[layerNumber - 1];
-		for(unsigned neuronInLayerNum = 0; neuronInLayerNum < n_layers[layerNumber].size() - 1; ++neuronInLayerNum)
+		for(unsigned neuron_Num = 0; neuron_Num < n_layers[layerNumber].size() - 1; ++neuron_Num)
 		{
-			cout << "neuron in layer num: " << neuronInLayerNum << endl;
-			n_layers[layerNumber][neuronInLayerNum].FeedForward(previousLayer);
+			n_layers[layerNumber][neuron_Num].FeedForward(previousLayer);
 		}
 	}
 }
@@ -235,10 +242,10 @@ void Net::BackPropagation(const vector<double> &targets)
  /*
  * There is where network learns, it needs to do some calculations:
  * a - calculate overall net error using root means squere error
- * a.a - implement a recent avrage measurment
- * b - calculate output leyer gradiend
+ * a.a - implement a recent average measurment
+ * b - calculate output layer gradiend
  * c - calculate hidden layer gradient
- * d - for all layers from outputs to first hidden layer update connections weights
+ * d - for all layers from outputs back to first hidden layer update connections weights
  */
 
 	// a

@@ -40,7 +40,7 @@ int main()
 	vector<double> targets;
 	vector<double> results;
 	unsigned hiddenLayersQuantity = 2;
-	unsigned neuronsPerLayer = 10;
+	unsigned neuronsPerLayer = 3;
 
 
 	/* Inputs */
@@ -56,7 +56,7 @@ int main()
 	Net microNN(topology);
 
 	/*Train network and get results*/
-	unsigned sesions = 1;
+	unsigned sesions = 5;
 	double input_A, input_B;
 	while(sesions > 0)
 	{
@@ -103,7 +103,7 @@ int main()
 		cout << "expected value is: " << expectedValue << endl;
 		targets.push_back(expectedValue);
 
-		// microNN.BackPropagation(targets);
+		microNN.BackPropagation(targets);
 
 		sleep(1); // sleep for one second;
 		--sesions;
