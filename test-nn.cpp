@@ -28,7 +28,7 @@ SOFT
 #include <iostream>
 #include <vector>
 #include <unistd.h>
-#include "./micronn.h"
+#include "./Net.h"
 /*****test******/
 
 using namespace std;
@@ -39,8 +39,8 @@ int main()
 	vector<double> inputs;
 	vector<double> targets;
 	vector<double> results;
-	unsigned hiddenLayersQuantity = 5;
-	unsigned neuronsPerLayer = 10;
+	unsigned hiddenLayersQuantity = 1;
+	unsigned neuronsPerLayer = 2;
 
 
 	/* Inputs */
@@ -56,17 +56,18 @@ int main()
 	Net microNN(topology);
 
 	/*Train network and get results*/
-	unsigned sesions = 100;
+	unsigned sesions = 100000;
+
 	double input_A, input_B;
+
 	while(sesions > 0)
 	{
 		// clear inputs and targets before each feed and lesson
 		inputs.clear();
 		targets.clear();
 
-
-		input_A = Neuron::RandomNum();
-		input_B = Neuron::RandomNum();
+		input_A = Randomizer();
+		input_B = Randomizer();
 		if(input_A > .5)
 		{
 			input_A = 1.0;
@@ -84,10 +85,9 @@ int main()
 		{
 			input_B = 0.0;
 		}
+
 		inputs.push_back(input_A);
 		inputs.push_back(input_B);
-		microNN.FeedForward(inputs);
-		microNN.GetResults(results);
 
 		double expectedValue;
 		if((input_A == 1.0 && input_B == 1.0) || (input_A == 0.0 && input_B == 0.0))
@@ -98,18 +98,22 @@ int main()
 		{
 			expectedValue  = 1.0;
 		}
-		cout << "A: " << input_A << " B: " << input_B << endl;
-		cout << "R " << results[0] << " : ";
-		cout << "E " << expectedValue << endl;
+
+
+		microNN.feedForward(inputs);
+		microNN.getResults(results);
+
 		targets.push_back(expectedValue);
 
-		microNN.BackPropagation(targets);
+		microNN.backProp(targets);
+
+		cout << " | A: " << input_A << " B: " << input_B << " | " << endl;
+		cout << " | R " << results[0] << " : ";
+		cout << "E " << expectedValue;
+		cout << " | DIFF | " << abs(expectedValue - results[0]) << endl;
 
 		// sleep(2); // sleep for one second;
 
 		--sesions;
 	}
-
-
 }
-
