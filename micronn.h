@@ -74,7 +74,7 @@ public:
 	double GetOutput() const;
 	void FeedForward(const Layer &previousLayer);
 	void CalculateOutputGradients(double target);
-	void CalculateHiddenGradients(Layer &nextLayer);
+	void CalculateHiddenGradients(const Layer &nextLayer);
 	double SumDOW(const Layer &nextLayer) const;
 	void UpdateInputWeights(Layer &prevLayer);
 private:
@@ -83,8 +83,8 @@ private:
 	vector<Connection> n_outWeights;
 };
 
-double Neuron::eta = 0.16;
-double Neuron::alpha = 0.52;
+double Neuron::eta = 0.26;
+double Neuron::alpha = 0.50;
 
 Neuron::Neuron(unsigned neuronOutputsNum, unsigned myIndex)
 {
@@ -128,7 +128,7 @@ void Neuron::CalculateOutputGradients(double target)
 	n_gradient = dv * Neuron::TransferDerivative(n_Output);
 }
 
-void Neuron::CalculateHiddenGradients(Layer &nextLayer)
+void Neuron::CalculateHiddenGradients(const Layer &nextLayer)
 {
 	double dow = SumDOW(nextLayer);
 	n_gradient = dow * Neuron::TransferDerivative(n_Output);
@@ -152,17 +152,15 @@ void Neuron::UpdateInputWeights(Layer &prevLayer)
 	{
 		Neuron &neuron = prevLayer[n];
 
-		cout << neuron.n_outWeights[n_myIndex].deltaWeight;
-
-		// double oldDeltaWeight = neuron.n_outWeights[n_myIndex].deltaWeight;
+		double oldDeltaWeight = neuron.n_outWeights[n_myIndex].deltaWeight;
 
 		// eta is overall learning rate
 		// alpha is momentum of the learning
-		// double newDeltaWeight = eta * neuron.GetOutput()  * n_gradient + alpha * oldDeltaWeight;
 
-		// neuron.n_outWeights[n_myIndex].deltaWeight = newDeltaWeight;
-		// neuron.n_outWeights[n_myIndex].weight += newDeltaWeight;
+		double newDeltaWeight = eta * neuron.GetOutput()  * n_gradient + alpha * oldDeltaWeight;
 
+		neuron.n_outWeights[n_myIndex].deltaWeight = newDeltaWeight;
+		neuron.n_outWeights[n_myIndex].weight += newDeltaWeight;
 	}
 }
 
@@ -179,7 +177,7 @@ public:
 
 private:
 	vector<Layer> n_layers; // this is n_layer[number of layer][number of neuron] contains all layers that contains neurons
-	double n_error, n_recentAverageError, n_recentAverageErrorSmoothingFactor;
+	double n_error, n_recentAverageError = 100.0, n_recentAverageErrorSmoothingFactor = 0.0;
 };
 
 Net::Net(const vector<unsigned> &topology)
@@ -202,7 +200,6 @@ Net::Net(const vector<unsigned> &topology)
 		{
 			// creates new Neuron on the end of the layer vector
 			n_layers.back().push_back(Neuron(outputsNum, neuronNum));
-			cout << "Made a new Neuron in layer: " << layerN << " neuron number: " << neuronNum << endl;
 		}
 		// force bieas nodes output value to 1.0
 		if(layerN != numLayers - 1)
@@ -254,19 +251,18 @@ void Net::BackPropagation(const vector<double> &targets)
 
 	unsigned ne; // neuron index for looping through layer neurons
 	unsigned layerNumber; // layer index for looping through net layers
-	for(ne = 0; ne < outputLayer.size() - 1; ++ne)
+	for(ne = 0; ne <= outputLayer.size() - 1; ++ne)
 	{
 		double dt = targets[ne] - outputLayer[ne].GetOutput();
 		n_error += dt * dt;
 	}
-	n_error /= outputLayer.size() - 1;
+	n_error /= outputLayer.size(); // average the error
 	n_error = sqrt(n_error);
 
 	// a.a
 	n_recentAverageError = (n_recentAverageError * n_recentAverageErrorSmoothingFactor + n_error) / (n_recentAverageErrorSmoothingFactor + 1.0);
-
 	// b
-	for(ne = 0; ne < outputLayer.size() - 1; ++ne)
+	for(ne = 0; ne <= outputLayer.size() - 1; ++ne)
 	{
 		outputLayer[ne].CalculateOutputGradients(targets[ne]);
 	}
@@ -288,7 +284,8 @@ void Net::BackPropagation(const vector<double> &targets)
 		Layer &layer = n_layers[layerNumber];
 		Layer &prevLayer = n_layers[layerNumber - 1];
 
-		for(ne = 0; ne < layer.size(); ++ne)
+		unsigned numberOfNeurons = layerNumber == n_layers.size() - 1 ? layer.size() : layer.size() - 1;
+		for(ne = 0; ne < numberOfNeurons; ++ne)
 		{
 			layer[ne].UpdateInputWeights(prevLayer);
 		}

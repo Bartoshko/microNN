@@ -39,8 +39,8 @@ int main()
 	vector<double> inputs;
 	vector<double> targets;
 	vector<double> results;
-	unsigned hiddenLayersQuantity = 2;
-	unsigned neuronsPerLayer = 3;
+	unsigned hiddenLayersQuantity = 5;
+	unsigned neuronsPerLayer = 10;
 
 
 	/* Inputs */
@@ -56,7 +56,7 @@ int main()
 	Net microNN(topology);
 
 	/*Train network and get results*/
-	unsigned sesions = 5;
+	unsigned sesions = 100;
 	double input_A, input_B;
 	while(sesions > 0)
 	{
@@ -89,7 +89,6 @@ int main()
 		microNN.FeedForward(inputs);
 		microNN.GetResults(results);
 
-		cout << "result is: " << results[0] << endl;
 		double expectedValue;
 		if((input_A == 1.0 && input_B == 1.0) || (input_A == 0.0 && input_B == 0.0))
 		{
@@ -100,12 +99,14 @@ int main()
 			expectedValue  = 1.0;
 		}
 		cout << "A: " << input_A << " B: " << input_B << endl;
-		cout << "expected value is: " << expectedValue << endl;
+		cout << "R " << results[0] << " : ";
+		cout << "E " << expectedValue << endl;
 		targets.push_back(expectedValue);
 
 		microNN.BackPropagation(targets);
 
-		sleep(1); // sleep for one second;
+		// sleep(2); // sleep for one second;
+
 		--sesions;
 	}
 
