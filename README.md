@@ -11,4 +11,4 @@ Yes! But don't expect that sugestions will be implemented. This is just fun fun 
 ### Why C++?
 It is compiled language so it is fast. And it scalability is good.
 There is a lot of power with going closer to the machine level. And I want to use it with resonable speed and memory managment on my raspberry pi zero... so project can grow in this direction. Who knows?
-#### Thanks To Dave Miller that made greate tutorial for NN this is mirror implementation of what He did.
+#### Thanks To Dave Miller for making greate tutorial for NN, this is a mirror implementation of what He did.
