@@ -56,7 +56,7 @@ int main()
 	Net microNN(topology);
 
 	/*Train network and get results*/
-	unsigned sesions = 100000;
+	unsigned sesions = 1000;
 
 	double input_A, input_B;
 

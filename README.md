@@ -1,5 +1,5 @@
-# microNN
-micro simplistic neuro-network
+# MicroNN
+micro simplistic neuro-network, no instalation needed, just include Net.h in your project.
 ## Motivations?
 This microNN neuro-network is written thanks to bunch of people that are sharing there knowlage in free tutorials.
 This microNN is written for fun and for fun only, there is no specific porpouse or implementation it has been written for.
@@ -11,4 +11,7 @@ Yes! But don't expect that sugestions will be implemented. This is just fun fun 
 ### Why C++?
 It is compiled language so it is fast. And it scalability is good.
 There is a lot of power with going closer to the machine level. And I want to use it with resonable speed and memory managment on my raspberry pi zero... so project can grow in this direction. Who knows?
-#### Thanks To Dave Miller for making greate tutorial for NN, this is a mirror implementation of what He did.
+# Structure
+MocroNN is fead forward supervised network with back propagation with error correction learning rule with pultilayer preceptor. Preseptor has hiperbolic tangent activation functon.
+### What next:
+Introducing more activation functions for preceptron - called neuron in this project.
