@@ -19,4 +19,6 @@ Introducing more activation functions for preceptor - called neuron in this proj
 ## Preceptor - Neuron
 ### Activation function
 [Hyperbolic function](https://en.wikipedia.org/wiki/Hyperbolic_function#Standard_analytic_expressions)
+f(x) = than(x)
+
 [Sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) for C++ implementation to be approximation of the sigmoid function but very fast: f(x) = x / (1 + abs(x))
