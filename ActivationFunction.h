@@ -31,28 +31,69 @@ SOFT
 
 using namespace std:
 
+const double e = 2.71828182845904523536;
+
 class ActivatonFunction
 {
 public:
 	ActivatonFunction(){};
 	~ActivatonFunction(){};
-	double Hyperbolic(double &x)
+	static double Hyperbolic(const double &x) const
 	{
 		return than(x);
 	}
-	double HyperbolicDerivative(double &x)
+	static double HyperbolicDerivative(const double &x) const
 	{
-		double tan = tanh(x);
+		double tan = ActivatonFunction::Hyperbolic(&x);
 		return 1.0 - tan * tan;
 	}
-	double Sigmoid(double &x)
+	static double Sigmoid(const double &x) const
 	{
-		return x / (1 + abs(x))
+		return x / (1 + abs(x));
 	}
-	double SigmoidDerivative(double &x)
+	static double SigmoidDerivative(const double &x) const
 	{
-		double sigmoid = x / (1 + abs(x))
-		return 1.0 - sigmoid * sigmoid;
+		double sigmoid = ActivatonFunction::Sigmoid(&x);
+		return 1.0 - sigmiod * sigmoid;
 	}
-
+	static double BinnaryStep(const double &x) const
+	{
+		return x >= 0 ? 1 : 0;
+	}
+	static double BinnaryStepDerivative(const double &x) const
+	{
+		return x = 0 ? 1 : 0;
+	}
+	static double StepLinear(const double &x) const
+	{
+		return x >= 0 ? x : 0;
+	}
+	static double StepLinearDerivative(const double &x) const
+	{
+		return x >= 0 ? 1 : 0;
+	}
+	static double SoftPlus(const double &x) const
+	{
+		return log(1 +  pow(e, x));
+	}
+	static double SoftPlusDerivative(const double &x) const
+	{
+		return 1 / (1 +  pow(e, -x));
+	}
+	static double Sinusoid(const double &x) const
+	{
+		return sin(x);
+	}
+	static double SinusoidDerivative(const double &x) const
+	{
+		return cos(x);
+	}
+	static double Gaussian(const double &x) const
+	{
+		return pow(e, pow(-x, 2));
+	}
+	static double GaussianDerivative(const double &x) const
+	{
+		return 2 * x * pow(e, pow(-x, 2));
+	}
 }

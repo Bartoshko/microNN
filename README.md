@@ -15,10 +15,3 @@ There is a lot of power with going closer to the machine level. And I want to us
 MocroNN is feed forward supervised network. Back propagation has error correction learning rule and multilayer preceptor. Preceptor has hyperbolic tangent activation function.
 ### What next:
 Introducing more activation functions for preceptor - called neuron in this project.
-# Wiki..
-## Preceptor - Neuron
-### Activation function
-[Hyperbolic function](https://en.wikipedia.org/wiki/Hyperbolic_function#Standard_analytic_expressions)
-f(x) = than(x)
-
-[Sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) for C++ implementation to be approximation of the sigmoid function but very fast: f(x) = x / (1 + abs(x))
