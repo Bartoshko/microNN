@@ -29,71 +29,87 @@ SOFT
 #include <iostream>
 #include <cmath>
 
-using namespace std:
+using namespace std;
 
 const double e = 2.71828182845904523536;
 
-class ActivatonFunction
+class ActivationFunction
 {
 public:
-	ActivatonFunction(){};
-	~ActivatonFunction(){};
-	static double Hyperbolic(const double &x) const
+	ActivationFunction(){};
+	~ActivationFunction(){};
+	static double hyperbolic(const double &x)
 	{
-		return than(x);
+		return tanh(x);
 	}
-	static double HyperbolicDerivative(const double &x) const
+	static double hyperbolicDerivative(const double &x)
 	{
-		double tan = ActivatonFunction::Hyperbolic(&x);
+		double tan = ActivationFunction::hyperbolic(x);
 		return 1.0 - tan * tan;
 	}
-	static double Sigmoid(const double &x) const
+	static double sigmoid(const double &x)
 	{
 		return x / (1 + abs(x));
 	}
-	static double SigmoidDerivative(const double &x) const
+	static double sigmoidDerivative(const double &x)
 	{
-		double sigmoid = ActivatonFunction::Sigmoid(&x);
-		return 1.0 - sigmiod * sigmoid;
+		double sig_x = ActivationFunction::sigmoid(x);
+		return 1.0 - sig_x * sig_x;
 	}
-	static double BinnaryStep(const double &x) const
+	static double binnaryStep(const double &x)
 	{
 		return x >= 0 ? 1 : 0;
 	}
-	static double BinnaryStepDerivative(const double &x) const
+	static double binnaryStepDerivative(const double &x)
 	{
-		return x = 0 ? 1 : 0;
+		return x == 0 ? 1 : 0;
 	}
-	static double StepLinear(const double &x) const
+	static double stepLinear(const double &x)
 	{
 		return x >= 0 ? x : 0;
 	}
-	static double StepLinearDerivative(const double &x) const
+	static double stepLinearDerivative(const double &x)
 	{
 		return x >= 0 ? 1 : 0;
 	}
-	static double SoftPlus(const double &x) const
+	static double softPlus(const double &x)
 	{
 		return log(1 +  pow(e, x));
 	}
-	static double SoftPlusDerivative(const double &x) const
+	static double softPlusDerivative(const double &x)
 	{
 		return 1 / (1 +  pow(e, -x));
 	}
-	static double Sinusoid(const double &x) const
+	static double sinusoid(const double &x)
 	{
 		return sin(x);
 	}
-	static double SinusoidDerivative(const double &x) const
+	static double sinusoidDerivative(const double &x)
 	{
 		return cos(x);
 	}
-	static double Gaussian(const double &x) const
+	static double gaussian(const double &x)
 	{
 		return pow(e, pow(-x, 2));
 	}
-	static double GaussianDerivative(const double &x) const
+	static double gaussianDerivative(const double &x)
 	{
 		return 2 * x * pow(e, pow(-x, 2));
 	}
-}
+	static double arcTan(const double &x)
+	{
+		return atan(x);
+	}
+	static double arcTanDerivative(const double &x)
+	{
+		return 1 / (x * x + 1);
+	}
+	static double sinc(const double &x)
+	{
+		return x == 0 ? 1 : sin(x) / x;
+	}
+	static double sincDerivative(const double &x)
+	{
+		return x == 0 ? 0 : cos(x) / x - sin(x) / x * x;
+	}
+};
